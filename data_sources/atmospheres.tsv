@@ -1,0 +1,16 @@
+0	None	0.00	Vacc Suit
+1	Trace	0.001 to 0.09	Vacc Suit
+2	Very Thin, Tainted	0.1 to 0.42	Respirator, Filter
+3	Very Thin	0.1 to 0.42	Respirator
+4	Thin, Tainted	0.43 to 0.7	Filter
+5	Thin	0.43 to 0.7	
+6	Standard	0.71 to 1.49	
+7	Standard, Tainted	0.71 to 1.49	Filter
+8	Dense	1.5 to 2.49	
+9	Dense, Tainted	1.5 to 2.49	Filter
+10	Exotic	Varies	Air Supply
+11	Corrosive	Varies	Vacc Suit
+12	Insidious	Varies	Vacc Suit
+13	Dense, High	2.5+	
+14	Thin, Low	0.5 or less	
+15	Unusual	Varies	

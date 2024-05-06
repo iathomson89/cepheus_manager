@@ -1,0 +1,6 @@
+A	Excellent	Refined	1	Can construct starships and non-starships	    1	1
+B	Good"	Refined	1	Can construct non-starships	1	1
+C	Routine	Unrefined	0	Can perform reasonable repairs	0	1
+D	Poor	Unrefined	0	None	0	1
+E	Frontier	None	0	None	0	0
+X	None	None	0	None	0	0
