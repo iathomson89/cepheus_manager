@@ -1,6 +1,9 @@
 import sqlite3
 import csv
 
+
+
+
 # Establish connection to the SQLite database
 conn = sqlite3.connect('cepheus_campaign.db')
 cursor = conn.cursor()
@@ -90,8 +93,62 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS Planets (
             Po BIT,
             Ri BIT,
             Wa BIT,
-            Va BIT
+            Va BIT,
+            pprofile TEXT
 );''')
+
+
+
+
+cursor.execute('''CREATE VIEW IF NOT EXISTS Planet_Genie AS
+               SELECT
+                    planet_name,
+               
+                    printf('%02d%02d', column_coordinate, row_coordinate) AS coordinates,
+               
+               
+               CONCAT ( 
+                        starport_quality,
+                        planet_size,
+                        atmosphere_type,
+                        hydrosphere_percentage,
+                        population_level,
+                        government_type,
+                        law_level,
+                        '-',
+                        tech_level
+               )AS UWP_code,
+
+                   CONCAT(
+                        CASE WHEN Ag = 1 THEN 'Ag ' ELSE '' END,
+                        CASE WHEN Ast = 1 THEN 'As ' ELSE '' END,
+                        CASE WHEN Ba = 1 THEN 'Ba ' ELSE '' END,
+                        CASE WHEN De = 1 THEN 'De ' ELSE '' END,
+                        CASE WHEN Fl = 1 THEN 'Fl ' ELSE '' END,
+                        CASE WHEN Ga = 1 THEN 'Ga ' ELSE '' END,
+                        CASE WHEN Hi = 1 THEN 'Hi ' ELSE '' END,
+                        CASE WHEN Ht = 1 THEN 'Ht ' ELSE '' END,
+                        CASE WHEN Ic = 1 THEN 'Ic ' ELSE '' END,
+                        CASE WHEN Ind = 1 THEN 'In ' ELSE '' END,
+                        CASE WHEN Lo = 1 THEN 'Lo ' ELSE '' END,
+                        CASE WHEN Lt = 1 THEN 'Lt ' ELSE '' END,
+                        CASE WHEN Na = 1 THEN 'Na ' ELSE '' END,
+                        CASE WHEN Ni = 1 THEN 'Ni ' ELSE '' END,
+                        CASE WHEN Po = 1 THEN 'Po ' ELSE '' END,
+                        CASE WHEN Ri = 1 THEN 'Ri ' ELSE '' END,
+                        CASE WHEN Wa = 1 THEN 'Wa ' ELSE '' END,
+                        CASE WHEN Va = 1 THEN 'Va ' ELSE '' END
+                    ) AS Trade_Codes,
+               
+               
+               travel_zone,
+
+               CONCAT (population_modifier, planetoid_belts, gas_giants) AS pbg,
+
+               allegiance
+               
+               FROM planets
+               ;''')
 
 
 #Create and populate StarportClasses table
