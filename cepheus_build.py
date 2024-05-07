@@ -106,7 +106,6 @@ cursor.execute('''CREATE VIEW IF NOT EXISTS Planet_Genie AS
                
                     printf('%02d%02d', column_coordinate, row_coordinate) AS coordinates,
                
-               
                CONCAT ( 
                         starport_quality,
                         planet_size,
