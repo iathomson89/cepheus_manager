@@ -106,45 +106,47 @@ cursor.execute('''CREATE VIEW IF NOT EXISTS Planet_Genie AS
                
                     printf('%02d%02d', column_coordinate, row_coordinate) AS coordinates,
                
-               CONCAT ( 
-                        starport_quality,
-                        planet_size,
-                        atmosphere_type,
-                        hydrosphere_percentage,
-                        population_level,
-                        government_type,
-                        law_level,
-                        '-',
-                        tech_level
-               )AS UWP_code,
+                    starport_quality,
+                    planet_size,
+                    atmosphere_type,
+                    hydrosphere_percentage,
+                    population_level,
+                    government_type,
+                    law_level,
+                    tech_level,
+                    base_code,
 
-                   CONCAT(
-                        CASE WHEN Ag = 1 THEN 'Ag ' ELSE '' END,
-                        CASE WHEN Ast = 1 THEN 'As ' ELSE '' END,
-                        CASE WHEN Ba = 1 THEN 'Ba ' ELSE '' END,
-                        CASE WHEN De = 1 THEN 'De ' ELSE '' END,
-                        CASE WHEN Fl = 1 THEN 'Fl ' ELSE '' END,
-                        CASE WHEN Ga = 1 THEN 'Ga ' ELSE '' END,
-                        CASE WHEN Hi = 1 THEN 'Hi ' ELSE '' END,
-                        CASE WHEN Ht = 1 THEN 'Ht ' ELSE '' END,
-                        CASE WHEN Ic = 1 THEN 'Ic ' ELSE '' END,
-                        CASE WHEN Ind = 1 THEN 'In ' ELSE '' END,
-                        CASE WHEN Lo = 1 THEN 'Lo ' ELSE '' END,
-                        CASE WHEN Lt = 1 THEN 'Lt ' ELSE '' END,
-                        CASE WHEN Na = 1 THEN 'Na ' ELSE '' END,
-                        CASE WHEN Ni = 1 THEN 'Ni ' ELSE '' END,
-                        CASE WHEN Po = 1 THEN 'Po ' ELSE '' END,
-                        CASE WHEN Ri = 1 THEN 'Ri ' ELSE '' END,
-                        CASE WHEN Wa = 1 THEN 'Wa ' ELSE '' END,
-                        CASE WHEN Va = 1 THEN 'Va ' ELSE '' END
-                    ) AS Trade_Codes,
+               
+
+                    CASE WHEN Ag = 1 THEN 'Ag ' ELSE '' END ||
+                    CASE WHEN Ast = 1 THEN 'As ' ELSE '' END ||
+                    CASE WHEN Ba = 1 THEN 'Ba ' ELSE '' END ||
+                    CASE WHEN De = 1 THEN 'De ' ELSE '' END ||
+                    CASE WHEN Fl = 1 THEN 'Fl ' ELSE '' END ||
+                    CASE WHEN Ga = 1 THEN 'Ga ' ELSE '' END ||
+                    CASE WHEN Hi = 1 THEN 'Hi ' ELSE '' END ||
+                    CASE WHEN Ht = 1 THEN 'Ht ' ELSE '' END ||
+                    CASE WHEN Ic = 1 THEN 'Ic ' ELSE '' END ||
+                    CASE WHEN Ind = 1 THEN 'In ' ELSE '' END ||
+                    CASE WHEN Lo = 1 THEN 'Lo ' ELSE '' END ||
+                    CASE WHEN Lt = 1 THEN 'Lt ' ELSE '' END ||
+                    CASE WHEN Na = 1 THEN 'Na ' ELSE '' END ||
+                    CASE WHEN Ni = 1 THEN 'Ni ' ELSE '' END ||
+                    CASE WHEN Po = 1 THEN 'Po ' ELSE '' END ||
+                    CASE WHEN Ri = 1 THEN 'Ri ' ELSE '' END ||
+                    CASE WHEN Wa = 1 THEN 'Wa ' ELSE '' END ||
+                    CASE WHEN Va = 1 THEN 'Va ' ELSE '' END
+                    AS Trade_Codes,
                
                
                travel_zone,
 
-               CONCAT (population_modifier, planetoid_belts, gas_giants) AS pbg,
+               population_modifier,
+               planetoid_belts,
+               gas_giants,
 
-               allegiance
+               allegiance,
+               pprofile TEXT
                
                FROM planets
                ;''')
@@ -320,6 +322,11 @@ for digit, law_descriptor, restrictions in law_data:
         cursor.execute(
             '''INSERT INTO LawLevels (digit, law_descriptor, restrictions) VALUES (?,?,?)''',
                 (digit, law_descriptor, restrictions))
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS Allegiances (
+            allegiance_code VARCHAR(2),
+            allegiance_name TEXT
+                )''')
 
 
 # Commit changes and close connection

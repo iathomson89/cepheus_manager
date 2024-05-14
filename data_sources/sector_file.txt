@@ -1,32 +1,32 @@
-ASTAVIS       0101 A331A83-F    Hi Ht Na Po        414 Ce
-KREAS         0102 A269ABC-B  N Hi              A  330 Ce
-Zhakom        0104 E500210-7    Lo Va              303 Ce
+ASTAVIS       0101 A331A83-F    Hi Ht Na Po        414 Co
+KREAS         0102 A269ABC-B  N Hi              A  330 Kr
+Zhakom        0104 E500210-7    Lo Va              303 Kr
 Skair         0106 E37A545-8    Ni Wa              411 Ce
 Manar         0107 X120000-0  P Ba De Lt Po     R  020 Ce
 Yadithi       0108 E241500-9    Ni Po Co           511 Ce
 Fulle         0109 X765320-3    Lo Lt           R  814 Ce
-Gladiff       0201 C261663-4  P Lt Ni Ri           212 Ce
-Morrimarn     0203 D955633-2  S Ag Ga Lt Ni        111 Ce
-Monkario      0204 X9A6100-7    Fl Lo           R  111 Ce
+Gladiff       0201 C261663-4  P Lt Ni Ri           212 Co
+Morrimarn     0203 D955633-2  S Ag Ga Lt Ni        111 Kr
+Monkario      0204 X9A6100-7    Fl Lo           R  111 Kr
 Ynarijan      0208 B744556-B  A Ag Ni              111 Ce
 Volathis      0209 EAB7334-8    Fl Lo              331 Ce
 Oban          0210 C769886-6  S Ga Ri              111 Ce
-Hermidonia    0301 D44966A-5    Lt Ni              314 Ce
-ZAURIONELAE   0302 B444AAD-8  N Hi In              211 Ce
-Phantis       0303 D000479-D    As Ht Ni Va        414 Ce
-HIRACONIS     0304 B160A99-B    De Hi           A  404 Ce
-Izarapio      0305 X100000-0    Ba Lt Va        R  033 Ce
+Hermidonia    0301 D44966A-5    Lt Ni              314 Co
+ZAURIONELAE   0302 B444AAD-8  N Hi In              211 Co
+Phantis       0303 D000479-D    As Ht Ni Va        414 Kr
+HIRACONIS     0304 B160A99-B    De Hi           A  404 Kr
+Izarapio      0305 X100000-0    Ba Lt Va        R  033 Kr
 Poculuban     0307 E225757-9    Co                 231 Ce
 Notonerio     0401 X630000-0    Ba De Lt Po     R  031 Ce
 Barcadathis   0410 E79A422-5    Lt Ni Wa           420 Ce
-Vijatgon      0501 D686632-1  S Ag Ga Lt Ni Ri     521 Ce
+Vijatgon      0501 D686632-1  S Ag Ga Lt Ni Ri     521 Re
 Hallarion     0504 EADA100-7    Fl Lo Wa        A  722 Ce
 Ryosri        0506 E9AA200-8    Fl Lo Wa        A  221 Ce
 Shalenor      0507 X622300-7    Lo Po           R  733 Ce
 Ceptuar       0508 B332545-D  S Ht Ni Po           111 Ce
-VARIN         0601 B685955-C  N Hi Ht Cp           211 Ce
+VARIN         0601 B685955-C  N Hi Ht              211 Re
 Ishtarktos    0609 X300334-7    Lo Va           R  131 Ce
-Rheadesy      0702 X400344-7    Lo Va           R  414 Ce
+Rheadesy      0702 X400344-7    Lo Va           R  414 Re
 SELIO         0703 C7669BG-8    Hi                 112 Ce
 Palakonis     0705 D964300-6  S Lo                 510 Ce
 Aud           0706 D67A565-7  S Ni Wa              111 Ce

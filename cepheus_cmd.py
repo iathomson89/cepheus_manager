@@ -1,8 +1,13 @@
 import sqlite3
-import csv
 from tabulate import tabulate
 import json
 from datetime import datetime
+import os
+
+
+# Define metric on hex grid
+
+
 
 
 # Define the SQLite database filename
@@ -142,6 +147,16 @@ def hex_parse(char):
     else:
         return ord(char.upper()) - ord('A') + 10
     
+def hex_unparse(num):
+    if not isinstance(num, int) or num < 0:
+        print('Please input a non-negative integer')
+        return
+    elif num <= 9:
+        return str(num)
+    else:
+        return chr(ord('A') + num - 10)
+
+
 def UWP_parse(UWP):
     '''Parses a UWP intp a list for entry into database.'''
 
@@ -155,13 +170,21 @@ def add_planet(sec_string):
 
 
     name = sec_list[0]
+    sec_col = sec_list[1]
+    sec_row = sec_list[2]
     conn =connect_to_database()
     cursor = conn.cursor()
+    #Find planets with the same name
     cursor.execute('''SELECT COUNT(*) FROM Planets WHERE planet_name = ?''', (name,))
-    existing_records = cursor.fetchone()[0]
+    existing_name = cursor.fetchone()[0]
+
+    cursor.execute('''SELECT COUNT(*) FROM Planets 
+                   WHERE column_coordinate = ?
+                   AND row_coordinate = ?''', (sec_col,sec_row))
+    existing_coord = cursor.fetchone()[0]
 
     # If no records with the same planet exist, insert the new record
-    if existing_records == 0:
+    if existing_name == 0 and existing_coord == 0:
         try:
             conn = connect_to_database()
             cursor = conn.cursor()
@@ -210,13 +233,25 @@ def add_planet(sec_string):
                            WHERE planet_name = ?
                            ''',(*UWP_list, name))
 
-
         except:
             print(f'Something went wrong parsing the UPP code for {name}.')
 
         # Update trade codes
-
         try:
+            allcodes = ['Ag', 'As', 'Ba', 'De', 'Fl', 'Ga', 'Hi', 'Ht', 'Ic', 'In', 'Lo', 'Lt', 'Na', 'Ni', 'Po', 'Ri', 'Wa', 'Va']
+            for m in allcodes: 
+                if m == 'As':
+                    nullcode = "Ast"
+                elif m == 'In':
+                    nullcode = 'Ind'
+                else:
+                    nullcode = m
+                cursor.execute(f'''
+                    UPDATE Planets
+                        SET {nullcode} = 0
+                        WHERE planet_name = ?
+                ''',(name,))
+
             trade_codes = sec_list[5]
             for k in trade_codes:
                 if k == 'As':
@@ -231,22 +266,6 @@ def add_planet(sec_string):
                             WHERE planet_name = ?
                     ''',(name,)
                 )
-            allcodes = ['Ag', 'As', 'Ba', 'De', 'Fl', 'Ga', 'Hi', 'Ht', 'Ic', 'In', 'Lo', 'Lt', 'Na', 'Ni', 'Po', 'Ri', 'Wa', 'Va']
-            
-            for m in allcodes: 
-                if m in trade_codes:
-                    if m == 'As':
-                        nullcode = "Ast"
-                    elif m == 'In':
-                        nullcode = 'Ind'
-                    else:
-                        nullcode = m
-                    cursor.execute(f'''
-                        UPDATE Planets
-                            SET {nullcode} = 0
-                            WHERE planet_name = ?
-                    ''',(name,))
-
         except:
             print(f'Something went wrong parsing the trade codes')
         conn.commit()
@@ -255,9 +274,11 @@ def add_planet(sec_string):
         return
 
 
-    else:
+    elif existing_name != 0:
         print(f'''Planet {name} already exists. Did not add planet to database.''')
         return
+    else:
+        print(f'''Planet with coordinates {str(sec_col)},{str(sec_row)} already exists. Did not add planet to database.''')
 
 
 
@@ -313,8 +334,29 @@ def make_crew():
     
 
 
+def add_from_pprofile(pfname):
+    if pfname.endswith('.txt') == True:
+        filename = pfname
+    else:    
+        filename = pfname + '.txt'
+    with open(f'./pprofiles/{filename}', 'r') as f:
+        gstring = f.readline()[:-1]
+        print(gstring)
+        add_planet(gstring)
+        conn = connect_to_database()
+        cursor = conn.cursor()
+        planet_name = filename[:-4]
+        print(f'planet name: {planet_name}, file_name: {filename}')
+        cursor.execute('''UPDATE planets SET pprofile = ? WHERE LOWER(planet_name) = LOWER(?)''', (filename, planet_name))
+        conn.commit()
+        conn.close()
+        
 
-
+def import_all_pprofiles():
+    files = os.listdir('./pprofiles/')
+    txt_files = [file for file in files if file.endswith('.txt')]
+    for file in txt_files:
+        add_from_pprofile(file)
 
 
 
@@ -403,3 +445,116 @@ def hire_crew_member():
         print(f"Successfully hired {member_name} as a crew member with role ID {role_id} to crew '{active_crew_name}'.")
     else:
         print("Hiring canceled.")
+
+
+
+
+
+def get_genie_string(planet_name):
+    conn = connect_to_database()
+    cursor = conn.cursor()
+
+    cursor.execute('''SELECT * FROM Planet_Genie WHERE planet_name = ? COLLATE NOCASE''', (planet_name,) )
+    
+    plist = cursor.fetchone()
+    #print('Adding planet name.')
+    sec_string = plist[0].ljust(14)
+    #print('Adding coordinates')
+    sec_string = sec_string + plist[1] + ' '
+    #print('Adding UWP')
+    sec_string = sec_string + ''.join(hex_unparse(i) for i in plist[2:9]) + '-' + hex_unparse(plist[9]) + '  '
+    #print('adding Base code')
+    sec_string = sec_string + plist[10].ljust(2)
+    #print('Adding trade codes')
+    sec_string = sec_string + plist[11].ljust(16)
+    #print('Adding travel zone')
+    sec_string = sec_string + str(plist[12]).ljust(3)
+    #print('Adding PBG')
+    sec_string = sec_string + ''.join(hex_unparse(i) for i in plist[13:16]) + ' '
+    #print('Adding allegiance')
+    sec_string = sec_string + plist[16]
+
+
+
+    conn.close()  
+    return sec_string[0:57]  
+    
+
+      
+
+
+
+def create_pprofile(planet_name):
+    conn = connect_to_database()
+    cursor = conn.cursor()
+
+    cursor.execute(f'''SELECT * FROM Planet_Genie
+                   WHERE planet_name = ? COLLATE NOCASE''', (planet_name,))
+    plist = cursor.fetchone()
+    if plist == None:
+        print(f'No planet matching {planet_name} found. Aborting.')
+        return
+    
+    elif plist[-1] != None:
+        print(f'Profile for {plist[0]} already exists. Aborting')
+    
+    else:
+        
+        print (f'Creating profile for {plist[0]}.')
+        with open(f'./pprofiles/{plist[0]}.txt', 'a') as f:
+            f.write(get_genie_string(plist[0]) + '\n')
+            f.write(f'''Planet Name: {plist[0]}\tCoordinates: {str(plist[1])}\tTravel Zone: {plist[11].ljust(1)}\n''')
+
+            f.write(f'''Starport Quality: {hex_unparse(plist[2])}\tTech Level: {str(plist[9])}\tTrade codes: {plist[11]}\tBases: {plist[10]}\n''')
+            f.write(f'''Planetoid Belts: {plist[14]}\t Gas Giants: {plist[15]}\tAllegiance: {plist[16]}\n''')
+
+
+
+            cursor.execute('''SELECT * FROM WorldSizes
+                           WHERE digit = ?''', (plist[3],))
+            sizelist = cursor.fetchone()
+            world_size = sizelist[1]
+            grav = sizelist[2]
+            f.write(f'''Planet Size: {world_size} km\tSurface Gravity: {str(grav)}\n''') # type: ignore
+
+            cursor.execute(f'''SELECT * FROM Atmospheres
+                           WHERE digit = ?''',(int(plist[4]),) )
+            atlist = cursor.fetchone()
+            atmo = atlist[1]
+            pressure = atlist[2]
+            surv_gear = atlist[3]
+            f.write(f'''Atmosphere: {atmo}\tPressure: {pressure}\tRequired Gear: {surv_gear}\n''')
+
+
+            cursor.execute('''SELECT * FROM Hydrographics
+                           WHERE digit = ?''', (plist[5],))
+            hydrolist = cursor.fetchone()
+            hydro_per = hydrolist[1]
+            hydro_des = hydrolist[2]
+            f.write(f'''Hydrographic Percentage: {hydro_per} km\tHydrographic description: {hydro_des}\n''')
+
+
+            cursor.execute('''SELECT range FROM BasePopulations
+                           WHERE digit = ?''', (plist[6],))
+            basepop = cursor.fetchone()[0]
+            popmod = plist[13]
+
+            cursor.execute('''SELECT government_type FROM GovernmentTypes
+                           WHERE digit = ?''', (plist[7],))
+            gov_type = cursor.fetchone()[0]
+            f.write(f'''Population: {basepop * popmod:,}\tGovernment Type: {str(gov_type)}\n''')
+
+            #print(plist[8])
+            cursor.execute('''SELECT restrictions FROM LawLevels
+                           WHERE digit = ?''', (min(plist[8],10),))
+            restrictions = cursor.fetchone()[0]
+            f.write(f'''Law Level: {str(plist[8])}\tRestrictions: {str(restrictions)}\n''')
+
+
+            f.close()
+            cursor.execute('''UPDATE Planets SET pprofile = ? WHERE planet_name = ?''', (plist[0] + '.txt', plist[0]))
+            conn.commit()      
+
+    conn.close()
+
+
