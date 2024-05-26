@@ -13,7 +13,9 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS Crews (
                     crew_id INTEGER PRIMARY KEY,
                     crew_name TEXT,
                     start_date DATE,
-                    current_date DATE
+                    current_date DATE,
+                    current_column INTEGER,
+                    current_row INTEGER
                 )''')
 
 # Create table: Roles

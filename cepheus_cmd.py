@@ -3,92 +3,45 @@ from tabulate import tabulate
 import json
 from datetime import datetime
 import os
+import math
+import cepheus_config as c_con
 
 
-# Define metric on hex grid
 
 
 
-
-# Define the SQLite database filename
-
-active_crew_id = None
-
-with open('./data_sources/defaults.json', 'r') as file:
-    data = json.load(file)
-    DATABASE_FILE = data['DATABASE_FILE']
-    default_date = data['default_date']
-    active_crew_id = data['default_crew']
-    if active_crew_id is None:
-        print('No default crew set. You can set this by assigning an ID number in "defaults.json".')
-    else:
-        conn = sqlite3.connect(DATABASE_FILE)
-        cursor = conn.cursor()
-        cursor.execute('''SELECT crew_name FROM crews WHERE crew_id = ?''', (active_crew_id,))
-        active_crew_name = cursor.fetchone()[0]
-        conn.close()
-        print(f"The active crew is {active_crew_name}, (crew ID: {active_crew_id}).")
-
-
-def connect_to_database():
-    """Establish connection to the SQLite database."""
-    conn = sqlite3.connect(DATABASE_FILE)
-    return conn
-
-def set_active_crew(input_int):
-    """Sets the active_crew variable. Should be the first function called at start of session"""
-    active_crew_id = input_int
-
-def get_crews():
-    """Retrieve all crews from the database."""
-    # Establish connection to the SQLite database
-    conn = sqlite3.connect(DATABASE_FILE)
+if c_con.config.active_crew_id is None:
+    print('No default crew set. You can set this by assigning an ID number in "defaults.json".')
+else:
+    conn = sqlite3.connect(c_con.config.DATABASE_FILE)
     cursor = conn.cursor()
-
-    # Query the database to retrieve all crews
-    cursor.execute('''SELECT * FROM Crews''')
-    crews = cursor.fetchall()  # Fetch all crews
-
-    # Close the connection
+    cursor.execute('''SELECT crew_name FROM crews WHERE crew_id = ?''', (c_con.config.active_crew_id,))
+    active_crew_name = cursor.fetchone()[0]
     conn.close()
+    print(f"The active crew is {c_con.get_crew_name(c_con.config.active_crew_id)}, (crew ID: {c_con.config.active_crew_id}).")
 
-    return crews
-
-def get_crew_name(crew_id):
-    """Retrieve the name of the crew with the given ID."""
-    # Establish connection to the SQLite database
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-
-    # Query the database to retrieve the crew name
-    cursor.execute('''SELECT crew_name FROM Crews WHERE crew_id = ?''', (crew_id,))
-    crew_name = cursor.fetchone()[0]  # Fetch the crew name
-
-    # Close the connection
-    conn.close()
-
-    return crew_name
 
 def get_roles():
     """Fetch roles from the database."""
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = sqlite3.connect(c_con.config.DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute('''SELECT role_id, role_name, default_salary FROM Roles''')
     roles = cursor.fetchall()
     conn.close()
     return roles
 
-def add_crew(crew_name, start_date):
+def add_crew(crew_name, start_date, start_col, start_row):
     """Add a new crew to the database."""
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
-    cursor.execute('''INSERT INTO Crews (crew_name, start_date, current_date) VALUES (?,?,?)''', (crew_name,start_date, start_date))
+    cursor.execute('''INSERT INTO Crews (crew_name, start_date, current_date, current_column, current_row) 
+                   VALUES (?,?,?,?,?)''', (crew_name, start_date, start_date, start_col, start_row))
     conn.commit()
     conn.close()
 
 def add_role(role_name, default_salary):
     """Add a new role to the database."""
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
     cursor.execute('''INSERT INTO Roles (role_name, default_salary) VALUES (?, ?)''', (role_name, default_salary))
     conn.commit()
@@ -172,7 +125,7 @@ def add_planet(sec_string):
     name = sec_list[0]
     sec_col = sec_list[1]
     sec_row = sec_list[2]
-    conn =connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
     #Find planets with the same name
     cursor.execute('''SELECT COUNT(*) FROM Planets WHERE planet_name = ?''', (name,))
@@ -186,7 +139,7 @@ def add_planet(sec_string):
     # If no records with the same planet exist, insert the new record
     if existing_name == 0 and existing_coord == 0:
         try:
-            conn = connect_to_database()
+            conn = c_con.connect_to_database()
             cursor = conn.cursor()
             cursor.execute(
                 '''
@@ -295,7 +248,7 @@ def make_crew():
     print("Creating a new crew")
     print("=========================")
     crew_name = input("Please enter the name for this crew:")
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
     cursor.execute('''SELECT crew_name FROM crews WHERE crew_name = ? ''', (crew_name,))
     dupe_check = cursor.fetchone()
@@ -305,10 +258,24 @@ def make_crew():
     else:
 
         #Set dates for crew
-        start_date = input(f"Please enter the in-universe start date of the campaign in YYYY-MM-DD format. Leave blank for the default date of {default_date}.")
+        start_planet = input('''Please enter the name of the planet the crew starts on.''')
+        try:
+            conn = c_con.connect_to_database()
+            cursor = conn.cursor()
+            cursor.execute('''SELECT column_coordinate, row_coordinate FROM Planets WHERE LOWER(planet_name) = LOWER(?)''', (start_planet,))
+            start_coords = cursor.fetchone()
+            print(f'Starting on {start_planet} with starting coordinates {start_coords[0], start_coords[1]}.')
+            conn.close()
+
+        except:
+            print('Something went wrong with the coordinates.')
+            return
+
+        start_date = input(f'''Please enter the in-universe start date of the campaign in YYYY-MM-DD format. 
+                           Leave blank for the default date of {c_con.config.default_date}.''')
         if start_date == '':
-            start_date = default_date
-            print(f"Using default date pf {default_date}.")
+            start_date = c_con.config.default_date
+            print(f"Using default date pf {c_con.config.default_date}.")
         try:
             datetime.strptime(start_date, '%Y-%m-%d')
             print(f"Starting date set to {start_date}.")
@@ -319,12 +286,12 @@ def make_crew():
 
         confirmation = input(f"Create {crew_name} starting in {start_date}? [Y/N]")
         if "y" in confirmation.lower():
-            add_crew(crew_name, start_date)
-            conn = connect_to_database()
+            add_crew(crew_name, start_date, start_coords[0], start_coords[1])
+            conn = c_con.connect_to_database()
             cursor = conn.cursor()
             cursor.execute('''SELECT crew_id FROM crews WHERE crew_name = ?''', (crew_name,))
             crew_id = cursor.fetchone()[0]
-            set_active_crew(crew_id)
+            c_con.set_active_crew(crew_id)
             print(f"{crew_name} added to database with id {crew_id}. Setting to active.")
             conn.close()
 
@@ -343,7 +310,7 @@ def add_from_pprofile(pfname):
         gstring = f.readline()[:-1]
         print(gstring)
         add_planet(gstring)
-        conn = connect_to_database()
+        conn = c_con.connect_to_database()
         cursor = conn.cursor()
         planet_name = filename[:-4]
         print(f'planet name: {planet_name}, file_name: {filename}')
@@ -364,7 +331,7 @@ def import_all_pprofiles():
 #More direct input. For more user-friendly version, use 'Hire Crew'
 def add_crew_member(crew_id, member_name, role_id, member_salary):
     """Add a new crew member to the database."""
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
     cursor.execute('''INSERT INTO CrewMembers (crew_id, member_name, role_id, member_salary) VALUES (?, ?, ?, ?)''',
                    (crew_id, member_name, role_id, member_salary))
@@ -374,36 +341,23 @@ def add_crew_member(crew_id, member_name, role_id, member_salary):
 
 def hire_crew_member():
     """Walk the user through the process of hiring a new crew member."""
-    global active_crew_id
     print("Hiring a New Crew Member")
     print("=========================")
+    c_con.validate_active_crew()
 
     # Check if there is an active crew
-    active_check = False
-    while active_check == False:
-        if active_crew_id is not None:
-            active_crew_name = get_crew_name(active_crew_id)
-            proceed_with_hire = input(f"Hirie a new crew member to crew '{active_crew_name}'? [Y/N]")
-            if 'y' in proceed_with_hire.lower():
-                active_check = True
-            else: 
-                print('Hiring cancelled.')
-                return
-        else:
-            print("No active crew found.")
-            # Display crews table
-            crews = get_crews()  # Get crews from the database
-            headers = ["ID", "Name"]
-            crews_table = tabulate(crews, headers=headers, tablefmt="grid")
-            print("Available Crews:")
-            print(crews_table)
-            # Prompt the user to select an active crew
-            active_crew_id = input("Enter the ID of the active crew: ")
-            # Set the selected crew as active
-            set_active_crew(active_crew_id)
-            active_crew_name = get_crew_name(active_crew_id)
-            print(f"Active crew set to '{active_crew_name}'.")
-            return(active_crew_id)
+
+    confirm = False
+    while confirm == False:
+        active_crew_name = c_con.get_crew_name(c_con.config.active_crew_id)
+        proceed_with_hire = input(f"Hirie a new crew member to crew '{active_crew_name}'? [Y/N]")
+        if 'y' not in proceed_with_hire.lower():
+            c_con.config.active_crew_id = None
+            print('Setting new active crew')
+            c_con.validate_active_crew()
+        else: confirm = True
+
+
 
     # Prompt the user for crew member name
     member_name = input("Enter the name of the new crew member: ")
@@ -429,19 +383,23 @@ def hire_crew_member():
     # Prompt the user to choose whether to use default salary or set a new salary
     default_or_custom = input(f"The default salary of {role_name} is {default_salary}. Use default salary? (yes/no) ")
 
-    if default_or_custom.lower() == 'yes':
+    if 'y' in default_or_custom.lower():
         # Use default salary
         member_salary = default_salary
     else:
         # Prompt the user for a new salary
-        member_salary = input("Enter the new salary: ")
+        try: 
+            member_salary = int(input("Enter the new salary: "))
+        except:
+            print('Salary must be an integer value. Hiring cancelled.')
+            return
 
     # Confirm hiring
     confirm_hire = input(f"Hire {role_name} {member_name} with a salary of {member_salary}? [Y/N]")
     
     if 'y' in confirm_hire.lower():
         # Add the new crew member to the database
-        add_crew_member(crew_id=active_crew_id, member_name=member_name, role_id=role_id, member_salary=member_salary)
+        add_crew_member(crew_id= c_con.config.active_crew_id, member_name=member_name, role_id=role_id, member_salary=member_salary)
         print(f"Successfully hired {member_name} as a crew member with role ID {role_id} to crew '{active_crew_name}'.")
     else:
         print("Hiring canceled.")
@@ -449,9 +407,8 @@ def hire_crew_member():
 
 
 
-
 def get_genie_string(planet_name):
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
 
     cursor.execute('''SELECT * FROM Planet_Genie WHERE planet_name = ? COLLATE NOCASE''', (planet_name,) )
@@ -474,8 +431,6 @@ def get_genie_string(planet_name):
     #print('Adding allegiance')
     sec_string = sec_string + plist[16]
 
-
-
     conn.close()  
     return sec_string[0:57]  
     
@@ -485,7 +440,7 @@ def get_genie_string(planet_name):
 
 
 def create_pprofile(planet_name):
-    conn = connect_to_database()
+    conn = c_con.connect_to_database()
     cursor = conn.cursor()
 
     cursor.execute(f'''SELECT * FROM Planet_Genie
@@ -515,7 +470,7 @@ def create_pprofile(planet_name):
             sizelist = cursor.fetchone()
             world_size = sizelist[1]
             grav = sizelist[2]
-            f.write(f'''Planet Size: {world_size} km\tSurface Gravity: {str(grav)}\n''') # type: ignore
+            f.write(f'''Planet Size: {world_size} km\tSurface Gravity: {str(grav)} gs\n''') # type: ignore
 
             cursor.execute(f'''SELECT * FROM Atmospheres
                            WHERE digit = ?''',(int(plist[4]),) )
@@ -523,7 +478,7 @@ def create_pprofile(planet_name):
             atmo = atlist[1]
             pressure = atlist[2]
             surv_gear = atlist[3]
-            f.write(f'''Atmosphere: {atmo}\tPressure: {pressure}\tRequired Gear: {surv_gear}\n''')
+            f.write(f'''Atmosphere: {atmo}\tPressure: {pressure} atm\tRequired Gear: {surv_gear}\n''')
 
 
             cursor.execute('''SELECT * FROM Hydrographics
@@ -557,4 +512,43 @@ def create_pprofile(planet_name):
 
     conn.close()
 
+#cube coordinates make for easier distance measures. These three functions set up
+#the offset hex distance
+def evenq_to_cube(x,y):
+    q = x
+    r = int(y - (x + (x & 1))/2)
+    s = -q-r
+    return (q, r, s)
+
+#Here, a and b are integer 3-tuples.
+def cube_dist(a,b):
+    return max(abs(a[0]-b[0]), abs(a[1]-b[1]), abs(a[2]-b[2]))
+
+def hex_dist(map_start, map_end):
+    #offset to q (columns) and r (diagonal) cube coordinates
+    cube_start = evenq_to_cube(map_start[0], map_start[1])
+    cube_end = evenq_to_cube(map_end[0], map_end[1])
+    return cube_dist(cube_start, cube_end)
+
+
+def calc_jumplist(start_coords, jump_limit):
+    '''start_coords is a tuple containing the (column,row) grid coordinates
+    jump_limit is an integer equal to a ship's jump rating
+    Returns list of tuples: (planet_name, column_coord, row_coord, jump distance, starport_quality)'''
+    jumplist = []
+    conn = c_con.connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT planet_name, column_coordinate, row_coordinate, starport_quality FROM planets''')
+    planet_data = cursor.fetchall()
+    conn.close()
+    for p in planet_data:
+        p_coords = (p[1],p[2])
+        jump_dist = hex_dist(start_coords, p_coords)
+        if jump_dist >0 and jump_dist <= jump_limit:
+            print(p[0])
+            p_tuple = [p[0], p[1], p[2], jump_dist, hex_unparse(p[3])]
+            jumplist.append(p_tuple)
+    return jumplist
+
+    
 

@@ -20,7 +20,7 @@ Poculuban     0307 E225757-9    Co                 231 Ce
 Notonerio     0401 X630000-0    Ba De Lt Po     R  031 Ce
 Barcadathis   0410 E79A422-5    Lt Ni Wa           420 Ce
 Vijatgon      0501 D686632-1  S Ag Ga Lt Ni Ri     521 Re
-Hallarion     0504 EADA100-7    Fl Lo Wa        A  722 Ce
+Hallarion     0504 EADA100-7    Fl Lo Wa        A  722 Na
 Ryosri        0506 E9AA200-8    Fl Lo Wa        A  221 Ce
 Shalenor      0507 X622300-7    Lo Po           R  733 Ce
 Ceptuar       0508 B332545-D  S Ht Ni Po           111 Ce
